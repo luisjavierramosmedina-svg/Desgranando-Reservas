@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desgranando — Reservas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#0D0D0D;color:#F0EDE6;min-height:100vh;}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;height:60px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:#F0EDE6;white-space:nowrap;}
+.nav-tabs{display:flex;gap:4px;flex-wrap:nowrap;}
+.tab-btn{padding:0.4rem 0.75rem;border-radius:4px;border:2px solid transparent;font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:500;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.tab-btn.libro-active{background:#C4664A;color:#fff;border-color:#C4664A;}
+.tab-btn.libro-inactive{background:transparent;color:#C4664A;border-color:#C4664A;}
+.tab-btn.cine-active{background:#534AB7;color:#fff;border-color:#534AB7;}
+.tab-btn.cine-inactive{background:transparent;color:#9A94E0;border-color:#534AB7;}
+.tab-btn.admin-btn{background:transparent;color:rgba(240,237,230,0.45);border-color:rgba(255,255,255,0.15);font-size:0.68rem;}
+.tab-btn.admin-btn.active-admin{background:rgba(255,255,255,0.08);color:#F0EDE6;border-color:rgba(255,255,255,0.3);}
+
+.section{display:none;padding:1.2rem;}
+.section.active{display:block;}
+
+.hero-libro{background:#1A120E;border:1px solid rgba(196,102,74,0.25);border-radius:12px;padding:1.4rem;margin-bottom:1.2rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;}
+.hero-cine{background:#0E0D1A;border:1px solid rgba(83,74,183,0.3);border-radius:12px;padding:1.4rem;margin-bottom:1.2rem;display:flex;gap:1rem;align-items:center;justify-content:space-between;}
+.hero-text{flex:1;min-width:0;}
+.hero-eyebrow{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:500;margin-bottom:0.4rem;}
+.eyebrow-libro{color:#C4664A;}.eyebrow-cine{color:#7F77DD;}
+.hero-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;line-height:1.2;margin-bottom:0.4rem;color:#F5F0E8;}
+.hero-sub{font-size:0.82rem;line-height:1.55;color:rgba(240,237,230,0.5);}
+.price-badge-libro{background:#C4664A;color:#F5F0E8;border-radius:50%;width:68px;height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.price-badge-cine{background:#534AB7;color:#EEEDFE;border-radius:50%;width:68px;height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.price-num{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;line-height:1;}
+.price-label{font-size:0.55rem;text-transform:uppercase;letter-spacing:0.1em;opacity:0.8;margin-top:2px;}
+
+.stats-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:1.2rem;}
+.stat-card-libro{background:#1A120E;border:1px solid rgba(196,102,74,0.2);border-radius:8px;padding:0.9rem;text-align:center;}
+.stat-card-cine{background:#0E0D1A;border:1px solid rgba(83,74,183,0.2);border-radius:8px;padding:0.9rem;text-align:center;}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;line-height:1;margin-bottom:4px;}
+.stat-num-libro{color:#C4664A;}.stat-num-cine{color:#7F77DD;}
+.stat-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(240,237,230,0.4);}
+
+.sessions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:1.2rem;}
+@media(max-width:520px){.sessions-grid{grid-template-columns:1fr;}}
+.session-card{border-radius:10px;padding:1.2rem;}
+.session-card-libro{background:#1A120E;border:1px solid rgba(196,102,74,0.25);}
+.session-day{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.15em;font-weight:500;margin-bottom:0.35rem;}
+.session-day-libro{color:#C4664A;}
+.session-date{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#F0EDE6;margin-bottom:0.2rem;}
+.session-time{font-size:0.78rem;color:rgba(240,237,230,0.45);margin-bottom:0.8rem;font-family:'DM Mono',monospace;}
+.session-book{font-size:0.76rem;font-style:italic;color:rgba(240,237,230,0.55);margin-bottom:0.8rem;padding-bottom:0.8rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.attendees-label{font-size:0.6rem;text-transform:uppercase;letter-spacing:0.12em;color:rgba(240,237,230,0.3);margin-bottom:0.4rem;}
+.avatars{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0.6rem;min-height:28px;}
+.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;}
+.avatar-libro{background:rgba(196,102,74,0.3);color:#E8967E;border:1px solid rgba(196,102,74,0.4);}
+.avatar-cine{background:rgba(83,74,183,0.3);color:#9A94E0;border:1px solid rgba(83,74,183,0.4);}
+.avatar-empty{background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.12);}
+.session-count{font-size:0.72rem;color:rgba(240,237,230,0.38);}
+.session-count span{color:#F0EDE6;font-weight:500;}
+.btn-reservar-libro{width:100%;margin-top:0.8rem;padding:0.6rem;border-radius:6px;border:none;background:#C4664A;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:background 0.2s;}
+.btn-reservar-libro:hover{background:#9E4C34;}
+.btn-reservar-libro:disabled{background:#555;cursor:not-allowed;}
+.btn-reservar-cine{width:100%;margin-top:0.8rem;padding:0.6rem;border-radius:6px;border:none;background:#534AB7;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:background 0.2s;}
+.btn-reservar-cine:hover{background:#3C3489;}
+.btn-reservar-cine:disabled{background:#555;cursor:not-allowed;}
+
+.bizum-strip-libro{background:#1A120E;border:1px solid rgba(196,102,74,0.2);border-radius:10px;padding:1rem 1.4rem;display:flex;align-items:center;gap:1rem;margin-top:0.5rem;flex-wrap:wrap;}
+.bizum-strip-cine{background:#0E0D1A;border:1px solid rgba(83,74,183,0.2);border-radius:10px;padding:1rem 1.4rem;display:flex;align-items:center;gap:1rem;margin-top:0.5rem;flex-wrap:wrap;}
+.bizum-num-libro{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#C4664A;white-space:nowrap;}
+.bizum-num-cine{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:#7F77DD;white-space:nowrap;}
+.bizum-txt{font-size:0.76rem;color:rgba(240,237,230,0.45);line-height:1.5;}
+.bizum-txt strong{color:#F0EDE6;}
+
+.cine-single{background:#0E0D1A;border:1px solid rgba(83,74,183,0.25);border-radius:10px;padding:1.5rem;margin-bottom:1.2rem;}
+.cine-tag{display:inline-block;background:rgba(83,74,183,0.2);color:#9A94E0;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;padding:3px 10px;border-radius:4px;margin-bottom:0.8rem;}
+.cine-movie-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-style:italic;color:#EEEDFE;margin-bottom:0.3rem;}
+.cine-date{font-family:'DM Mono',monospace;font-size:0.8rem;color:rgba(240,237,230,0.45);margin-bottom:1.1rem;}
+
+/* LIVE indicator */
+.live-badge{display:inline-flex;align-items:center;gap:5px;font-size:0.6rem;color:rgba(240,237,230,0.3);font-family:'DM Mono',monospace;margin-bottom:0.6rem;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#4CAF50;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.modal-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;padding:1.2rem;z-index:100;}
+.modal-wrap.open{display:flex;}
+.modal{background:#1C1510;border-radius:12px;padding:1.5rem;max-width:420px;width:100%;border:1px solid rgba(196,102,74,0.3);}
+.modal.cine{background:#120F1C;border-color:rgba(83,74,183,0.3);}
+.modal h3{font-family:'Playfair Display',serif;font-size:1.15rem;color:#F0EDE6;margin-bottom:0.3rem;}
+.modal-session{font-size:0.76rem;color:rgba(240,237,230,0.4);margin-bottom:1.2rem;font-family:'DM Mono',monospace;}
+.modal label{display:block;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:rgba(240,237,230,0.38);margin-bottom:0.35rem;}
+.modal input{width:100%;padding:0.65rem 0.9rem;background:#0D0D0D;border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:#F0EDE6;font-family:'DM Sans',sans-serif;font-size:0.9rem;margin-bottom:1rem;outline:none;}
+.modal input:focus{border-color:rgba(196,102,74,0.6);}
+.modal.cine input:focus{border-color:rgba(83,74,183,0.5);}
+.modal-actions{display:flex;gap:0.8rem;margin-top:0.5rem;}
+.btn-cancel{flex:1;padding:0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.12);background:transparent;color:rgba(240,237,230,0.45);font-family:'DM Sans',sans-serif;font-size:0.76rem;cursor:pointer;}
+.btn-confirm-libro{flex:2;padding:0.6rem;border-radius:6px;border:none;background:#C4664A;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:500;cursor:pointer;}
+.btn-confirm-cine{flex:2;padding:0.6rem;border-radius:6px;border:none;background:#534AB7;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:500;cursor:pointer;}
+.modal-bizum-note{background:rgba(255,255,255,0.04);border-radius:6px;padding:0.75rem;font-size:0.74rem;color:rgba(240,237,230,0.4);line-height:1.6;margin-bottom:1rem;}
+.modal-bizum-note strong{color:#F0EDE6;}
+
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1A120E;border:1px solid rgba(196,102,74,0.4);color:#F0EDE6;padding:0.8rem 1.2rem;border-radius:8px;font-size:0.82rem;z-index:200;display:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
+.toast.cine-toast{background:#0E0D1A;border-color:rgba(83,74,183,0.4);}
+.toast.show{display:block;}
+
+.admin-panel{background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.5rem;margin-bottom:1.2rem;}
+.admin-section-title{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.15em;color:rgba(240,237,230,0.35);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(255,255,255,0.07);}
+.admin-form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;}
+@media(max-width:480px){.admin-form-row{grid-template-columns:1fr;}}
+.admin-field label{display:block;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(240,237,230,0.35);margin-bottom:0.3rem;}
+.admin-field input{width:100%;padding:0.5rem 0.75rem;background:#0D0D0D;border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#F0EDE6;font-family:'DM Sans',sans-serif;font-size:0.84rem;outline:none;}
+.admin-field input:focus{border-color:rgba(83,74,183,0.5);}
+.session-editor{background:#1A1A1A;border-radius:8px;padding:1rem;margin-bottom:0.75rem;}
+.session-editor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;}
+.session-editor-title{font-size:0.7rem;font-weight:500;color:rgba(240,237,230,0.5);text-transform:uppercase;letter-spacing:0.08em;}
+.btn-remove-session{background:rgba(220,80,80,0.1);border:1px solid rgba(220,80,80,0.3);color:rgba(220,100,100,0.8);border-radius:4px;font-size:0.7rem;padding:0.25rem 0.6rem;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-remove-session:hover{background:rgba(220,80,80,0.2);}
+.btn-add-session{padding:0.55rem 1.1rem;border-radius:6px;border:1px solid rgba(196,102,74,0.4);background:transparent;color:#C4664A;font-family:'DM Sans',sans-serif;font-size:0.76rem;cursor:pointer;margin-bottom:0.8rem;transition:background 0.2s;}
+.btn-add-session:hover{background:rgba(196,102,74,0.1);}
+.btn-admin-save{padding:0.55rem 1.3rem;border-radius:6px;border:none;background:#534AB7;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:500;cursor:pointer;margin-right:0.5rem;}
+.btn-admin-save:hover{background:#3C3489;}
+.btn-admin-reset{padding:0.55rem 1rem;border-radius:6px;border:1px solid rgba(220,80,80,0.4);background:transparent;color:rgba(220,80,80,0.7);font-family:'DM Sans',sans-serif;font-size:0.73rem;cursor:pointer;}
+.btn-admin-reset:hover{background:rgba(220,80,80,0.1);}
+.admin-lock{background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:2rem;text-align:center;}
+.admin-lock p{font-size:0.85rem;color:rgba(240,237,230,0.45);margin-bottom:1rem;}
+.admin-lock input{display:block;margin:0 auto 1rem;max-width:240px;width:100%;padding:0.65rem 1rem;background:#0D0D0D;border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:#F0EDE6;font-family:'DM Mono',monospace;font-size:1rem;text-align:center;outline:none;}
+.btn-unlock{padding:0.6rem 2rem;border-radius:6px;border:none;background:#534AB7;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;cursor:pointer;}
+.admin-top-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.badge-warning{display:inline-block;background:rgba(220,80,80,0.15);color:rgba(220,120,120,0.9);font-size:0.63rem;text-transform:uppercase;letter-spacing:0.1em;padding:3px 8px;border-radius:4px;}
+
+.loading-overlay{position:fixed;inset:0;background:#0D0D0D;display:flex;align-items:center;justify-content:center;z-index:999;transition:opacity 0.4s;}
+.loading-overlay.hidden{opacity:0;pointer-events:none;}
+.loading-dot{width:8px;height:8px;border-radius:50%;background:#C4664A;display:inline-block;margin:0 3px;animation:bounce 1s infinite;}
+.loading-dot:nth-child(2){animation-delay:0.15s;background:#9A94E0;}
+.loading-dot:nth-child(3){animation-delay:0.3s;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading-overlay">
+  <span class="loading-dot"></span>
+  <span class="loading-dot"></span>
+  <span class="loading-dot"></span>
+</div>
+
+<nav>
+  <div class="nav-logo">Desgranando</div>
+  <div class="nav-tabs">
+    <button class="tab-btn libro-active" id="tab-libro" onclick="switchTab('libro')">Club de lectura</button>
+    <button class="tab-btn cine-inactive" id="tab-cine" onclick="switchTab('cine')">Club de cine</button>
+    <button class="tab-btn admin-btn" id="tab-admin" onclick="switchTab('admin')">⚙ Admin</button>
+  </div>
+</nav>
+
+<!-- LIBRO -->
+<div id="section-libro" class="section active">
+  <div class="hero-libro">
+    <div class="hero-text">
+      <div class="hero-eyebrow eyebrow-libro" id="libro-eyebrow">Club de lectura · Mayo 2025</div>
+      <div class="hero-title" id="libro-hero-title">El Edén al Alba</div>
+      <div class="hero-sub">Elige la sesión que mejor te venga y reserva tu plaza. Pago de 8 € por Bizum tras apuntarte.</div>
+    </div>
+    <div class="price-badge-libro"><div class="price-num">8€</div><div class="price-label">por sesión</div></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card-libro"><div class="stat-num stat-num-libro" id="stat-total-inscritos">0</div><div class="stat-label">Inscritos totales</div></div>
+    <div class="stat-card-libro"><div class="stat-num stat-num-libro" id="stat-num-sesiones">0</div><div class="stat-label">Sesiones disponibles</div></div>
+  </div>
+  <div class="live-badge"><span class="live-dot"></span> En directo — actualización automática</div>
+  <div class="sessions-grid" id="sessions-libro"></div>
+  <div class="bizum-strip-libro">
+    <div class="bizum-num-libro">722 31 01 25</div>
+    <div class="bizum-txt">Tras reservar, haz el Bizum de <strong>8 €</strong> a este número.<br>Concepto: <strong>Desgranando Lectura + tu nombre</strong></div>
+  </div>
+</div>
+
+<!-- CINE -->
+<div id="section-cine" class="section">
+  <div class="hero-cine">
+    <div class="hero-text">
+      <div class="hero-eyebrow eyebrow-cine" id="cine-eyebrow">Club de cine · Mayo 2025</div>
+      <div class="hero-title" style="color:#EEEDFE;">Sesión mensual</div>
+      <div class="hero-sub">Una película al mes, una tarde de cine en comunidad. Reserva tu plaza y disfruta.</div>
+    </div>
+    <div class="price-badge-cine"><div class="price-num">7€</div><div class="price-label">por sesión</div></div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card-cine"><div class="stat-num stat-num-cine" id="stat-cine-inscritos">0</div><div class="stat-label">Inscritos</div></div>
+    <div class="stat-card-cine"><div class="stat-num stat-num-cine">1</div><div class="stat-label">Sesión este mes</div></div>
+  </div>
+  <div class="live-badge"><span class="live-dot"></span> En directo — actualización automática</div>
+  <div class="cine-single">
+    <div class="cine-tag">Temática del mes</div>
+    <div class="cine-movie-title" id="cine-tematica">Cine quinqui</div>
+    <div class="cine-date" id="cine-fecha-display">Sábado 23 de mayo · 12:00 h</div>
+    <div class="attendees-label">Apuntados</div>
+    <div class="avatars" id="avatars-cine"></div>
+    <div class="session-count" id="count-cine">Nadie apuntado aún — <span>¡sé el primero!</span></div>
+    <button class="btn-reservar-cine" id="btn-cine" onclick="openModalCine()">Reservar plaza</button>
+  </div>
+  <div class="bizum-strip-cine">
+    <div class="bizum-num-cine">633 787 457</div>
+    <div class="bizum-txt">Tras reservar, haz el Bizum de <strong>7 €</strong> a este número.<br>Concepto: <strong>Desgranando Cine + tu nombre</strong></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="section-admin" class="section">
+  <div class="admin-lock" id="admin-lock">
+    <p>Acceso restringido. Introduce la contraseña de administrador.</p>
+    <input type="password" id="admin-pass-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPass()">
+    <button class="btn-unlock" onclick="checkPass()">Entrar</button>
+    <p id="pass-error" style="font-size:0.75rem;color:rgba(220,80,80,0.7);margin-top:0.7rem;display:none;">Contraseña incorrecta</p>
+  </div>
+
+  <div id="admin-content" style="display:none;">
+    <div class="admin-panel">
+      <div class="admin-top-actions">
+        <div class="admin-section-title" style="border:none;margin:0;padding:0;">Club de lectura — sesiones y libros</div>
+        <span class="badge-warning">Zona admin</span>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <div class="admin-form-row">
+          <div class="admin-field"><label>Mes / etiqueta del hero</label><input type="text" id="adm-mes-libro" value="Mayo 2025"></div>
+        </div>
+      </div>
+      <div id="sessions-editor"></div>
+      <button class="btn-add-session" onclick="addSession()">+ Añadir sesión</button>
+      <div style="margin-top:0.8rem;display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+        <button class="btn-admin-save" onclick="saveLibroConfig()">Guardar cambios</button>
+        <button class="btn-admin-reset" onclick="resetInscritos('libro')">Borrar inscritos lectura</button>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <div class="admin-section-title">Club de cine — sesión mensual</div>
+      <div class="admin-form-row">
+        <div class="admin-field"><label>Temática / película</label><input type="text" id="adm-cine-tematica" value="Cine quinqui"></div>
+        <div class="admin-field"><label>Mes / etiqueta</label><input type="text" id="adm-mes-cine" value="Mayo 2025"></div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-field"><label>Fecha (texto)</label><input type="text" id="adm-cine-fecha" value="Sábado 23 de mayo"></div>
+        <div class="admin-field"><label>Hora</label><input type="text" id="adm-cine-hora" value="12:00 h"></div>
+      </div>
+      <div style="margin-top:0.8rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
+        <button class="btn-admin-save" onclick="saveCineConfig()">Guardar cambios</button>
+        <button class="btn-admin-reset" onclick="resetInscritos('cine')">Borrar inscritos cine</button>
+      </div>
+    </div>
+
+    <div class="admin-panel">
+      <div class="admin-section-title">Gestión de inscritos</div>
+      <div id="admin-inscritos-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div class="modal-wrap" id="modal-libro">
+  <div class="modal">
+    <h3>Reservar plaza</h3>
+    <div class="modal-session" id="modal-libro-session"></div>
+    <label>Tu nombre</label>
+    <input type="text" id="input-nombre-libro" placeholder="Escribe tu nombre..." maxlength="30" onkeydown="if(event.key==='Enter')confirmLibro()">
+    <div class="modal-bizum-note">Tras confirmar, haz el Bizum de <strong>8 €</strong> al <strong>722 31 01 25</strong> con el concepto <strong>Desgranando Lectura + tu nombre</strong>.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn-confirm-libro" id="btn-confirm-libro" onclick="confirmLibro()">Confirmar reserva</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-wrap" id="modal-cine">
+  <div class="modal cine">
+    <h3>Reservar plaza</h3>
+    <div class="modal-session" id="modal-cine-session"></div>
+    <label>Tu nombre</label>
+    <input type="text" id="input-nombre-cine" placeholder="Escribe tu nombre..." maxlength="30" onkeydown="if(event.key==='Enter')confirmCine()">
+    <div class="modal-bizum-note">Tras confirmar, haz el Bizum de <strong>7 €</strong> al <strong>633 787 457</strong> con el concepto <strong>Desgranando Cine + tu nombre</strong>.</div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn-confirm-cine" id="btn-confirm-cine" onclick="confirmCine()">Confirmar reserva</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── FIREBASE CONFIG ───────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyA3Z6UR-ecVXw4og_J8cHCQYqepkakxDtk",
+  authDomain: "desgranando---reservas.firebaseapp.com",
+  projectId: "desgranando---reservas",
+  storageBucket: "desgranando---reservas.firebasestorage.app",
+  messagingSenderId: "432235154616",
+  appId: "1:432235154616:web:52559290a374989b13b84d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── REFS ──────────────────────────────────────────────────────────────────────
+const configRef = doc(db, 'desgranando', 'config');
+const inscritosRef = doc(db, 'desgranando', 'inscritos');
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const ADMIN_PASS = 'desgranando2025';
+
+const DEFAULT_CONFIG = {
+  libro: {
+    mes: 'Mayo 2025',
+    sesiones: [
+      {id:'s1', day:'Miércoles', date:'27 de mayo', time:'19:00 – 21:00', libro:'El Edén al Alba'},
+      {id:'s2', day:'Sábado',   date:'30 de mayo', time:'12:00 – 14:00', libro:'El Edén al Alba'},
+      {id:'s3', day:'Sábado',   date:'30 de mayo', time:'17:00 – 19:00', libro:'El Edén al Alba'},
+      {id:'s4', day:'Sábado',   date:'30 de mayo', time:'19:00 – 21:00', libro:'El Edén al Alba'},
+    ]
+  },
+  cine: { tematica:'Cine quinqui', mes:'Mayo 2025', fecha:'Sábado 23 de mayo', hora:'12:00 h' }
+};
+
+let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let inscritos = { libro:{}, cine:[] };
+let adminUnlocked = false;
+let currentLibroSession = null;
+let sessionIdCounter = 20;
+
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function initials(n){ return n.trim().split(' ').map(w=>w[0]?.toUpperCase()||'').slice(0,2).join(''); }
+
+// ── FIRESTORE LOAD & INIT ─────────────────────────────────────────────────────
+async function initFirestore() {
+  // Load or create config document
+  const configSnap = await getDoc(configRef);
+  if (configSnap.exists()) {
+    config = configSnap.data();
+  } else {
+    await setDoc(configRef, DEFAULT_CONFIG);
+  }
+
+  // Load or create inscritos document
+  const inscritosSnap = await getDoc(inscritosRef);
+  if (inscritosSnap.exists()) {
+    inscritos = inscritosSnap.data();
+  } else {
+    const emptyInscritos = { libro: {}, cine: [] };
+    config.libro.sesiones.forEach(s => { emptyInscritos.libro[s.id] = []; });
+    await setDoc(inscritosRef, emptyInscritos);
+    inscritos = emptyInscritos;
+  }
+
+  renderLibro();
+  renderCine();
+
+  // Hide loader
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.style.display = 'none', 400);
+
+  // Real-time listener for inscritos (updates for all users instantly)
+  onSnapshot(inscritosRef, (snap) => {
+    if (snap.exists()) {
+      inscritos = snap.data();
+      renderLibro();
+      renderCine();
+      if (adminUnlocked) renderAdminInscritos();
+    }
+  });
+
+  // Real-time listener for config changes
+  onSnapshot(configRef, (snap) => {
+    if (snap.exists()) {
+      config = snap.data();
+      renderLibro();
+      renderCine();
+    }
+  });
+}
+
+// ── SAVE HELPERS ──────────────────────────────────────────────────────────────
+async function saveConfig() {
+  await setDoc(configRef, config);
+}
+
+async function saveInscritos() {
+  await setDoc(inscritosRef, inscritos);
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+window.switchTab = function(tab) {
+  ['libro','cine','admin'].forEach(t => {
+    document.getElementById('section-'+t).classList.toggle('active', t===tab);
+  });
+  document.getElementById('tab-libro').className = 'tab-btn '+(tab==='libro'?'libro-active':'libro-inactive');
+  document.getElementById('tab-cine').className  = 'tab-btn '+(tab==='cine'?'cine-active':'cine-inactive');
+  document.getElementById('tab-admin').className = 'tab-btn admin-btn'+(tab==='admin'?' active-admin':'');
+  if (tab==='admin' && adminUnlocked) renderAdminInscritos();
+};
+
+// ── ADMIN AUTH ────────────────────────────────────────────────────────────────
+window.checkPass = function() {
+  const v = document.getElementById('admin-pass-input').value;
+  if (v === ADMIN_PASS) {
+    adminUnlocked = true;
+    document.getElementById('admin-lock').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+    renderAdminEditor();
+    renderAdminInscritos();
+  } else {
+    document.getElementById('pass-error').style.display = 'block';
+  }
+};
+
+// ── RENDER LIBRO ──────────────────────────────────────────────────────────────
+function renderLibro() {
+  const sessions = config.libro?.sesiones || [];
+  document.getElementById('libro-eyebrow').textContent = 'Club de lectura · ' + (config.libro?.mes || '');
+  const books = [...new Set(sessions.map(s => s.libro).filter(Boolean))];
+  document.getElementById('libro-hero-title').textContent =
+    books.length === 1 ? books[0] : books.length > 1 ? 'Varios libros este mes' : 'Club de lectura';
+  document.getElementById('stat-num-sesiones').textContent = sessions.length;
+
+  const grid = document.getElementById('sessions-libro');
+  grid.innerHTML = sessions.map(s => {
+    const names = inscritos.libro?.[s.id] || [];
+    const avs = names.map(n => `<div class="avatar avatar-libro" title="${escH(n)}">${escH(initials(n))}</div>`).join('') +
+      (names.length === 0 ? `<div class="avatar avatar-empty"></div>` : '');
+    const ct = names.length === 0
+      ? `Nadie apuntado — <span>¡sé el primero!</span>`
+      : `<span>${names.length}</span> persona${names.length!==1?'s':''} apuntada${names.length!==1?'s':''}`;
+    return `<div class="session-card session-card-libro">
+      <div class="session-day session-day-libro">${escH(s.day)}</div>
+      <div class="session-date">${escH(s.date)}</div>
+      <div class="session-time">${escH(s.time)}</div>
+      <div class="session-book">📖 ${escH(s.libro||'—')}</div>
+      <div class="attendees-label">Apuntados</div>
+      <div class="avatars">${avs}</div>
+      <div class="session-count">${ct}</div>
+      <button class="btn-reservar-libro" onclick="openModalLibro('${escH(s.id)}','${escH(s.day+' '+s.date)}','${escH(s.time)}')">Reservar plaza</button>
+    </div>`;
+  }).join('');
+
+  const total = Object.values(inscritos.libro || {}).reduce((a,b) => a + b.length, 0);
+  document.getElementById('stat-total-inscritos').textContent = total;
+}
+
+// ── RENDER CINE ───────────────────────────────────────────────────────────────
+function renderCine() {
+  const c = config.cine || {};
+  document.getElementById('cine-eyebrow').textContent = 'Club de cine · ' + (c.mes || '');
+  document.getElementById('cine-tematica').textContent = c.tematica || '';
+  document.getElementById('cine-fecha-display').textContent = (c.fecha || '') + ' · ' + (c.hora || '');
+  document.getElementById('modal-cine-session').textContent = (c.fecha||'') + ' · ' + (c.hora||'') + ' · ' + (c.tematica||'');
+
+  const names = inscritos.cine || [];
+  document.getElementById('avatars-cine').innerHTML =
+    names.map(n => `<div class="avatar avatar-cine" title="${escH(n)}">${escH(initials(n))}</div>`).join('') +
+    (names.length === 0 ? `<div class="avatar avatar-empty"></div>` : '');
+  document.getElementById('count-cine').innerHTML = names.length === 0
+    ? `Nadie apuntado aún — <span>¡sé el primero!</span>`
+    : `<span>${names.length}</span> persona${names.length!==1?'s':''} apuntada${names.length!==1?'s':''}`;
+  document.getElementById('stat-cine-inscritos').textContent = names.length;
+}
+
+// ── RENDER ADMIN EDITOR ───────────────────────────────────────────────────────
+function renderAdminEditor() {
+  document.getElementById('adm-mes-libro').value = config.libro?.mes || '';
+  document.getElementById('adm-cine-tematica').value = config.cine?.tematica || '';
+  document.getElementById('adm-mes-cine').value = config.cine?.mes || '';
+  document.getElementById('adm-cine-fecha').value = config.cine?.fecha || '';
+  document.getElementById('adm-cine-hora').value = config.cine?.hora || '';
+
+  const ed = document.getElementById('sessions-editor');
+  ed.innerHTML = (config.libro?.sesiones || []).map((s, i) => `
+    <div class="session-editor">
+      <div class="session-editor-header">
+        <div class="session-editor-title">Sesión ${i+1}</div>
+        <button class="btn-remove-session" onclick="removeSession(${i})">✕ Eliminar</button>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-field"><label>Día de la semana</label><input type="text" id="sed-day-${i}" value="${escH(s.day)}"></div>
+        <div class="admin-field"><label>Fecha (texto)</label><input type="text" id="sed-date-${i}" value="${escH(s.date)}"></div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-field"><label>Horario</label><input type="text" id="sed-time-${i}" value="${escH(s.time)}"></div>
+        <div class="admin-field"><label>Libro de esta sesión</label><input type="text" id="sed-libro-${i}" value="${escH(s.libro||'')}"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── ADD / REMOVE SESSION ──────────────────────────────────────────────────────
+window.addSession = function() {
+  const last = config.libro.sesiones[config.libro.sesiones.length - 1] || {};
+  config.libro.sesiones.push({
+    id: 'sx' + (sessionIdCounter++),
+    day: last.day || 'Sábado',
+    date: last.date || '',
+    time: '',
+    libro: last.libro || ''
+  });
+  renderAdminEditor();
+};
+
+window.removeSession = function(idx) {
+  if (config.libro.sesiones.length <= 1) { showToast('Debe haber al menos una sesión', 'libro'); return; }
+  if (!confirm('¿Eliminar la sesión ' + (idx+1) + '? Los inscritos de esa sesión también se borrarán.')) return;
+  const sid = config.libro.sesiones[idx].id;
+  config.libro.sesiones.splice(idx, 1);
+  if (inscritos.libro) delete inscritos.libro[sid];
+  renderAdminEditor();
+  showToast('Sesión eliminada', 'libro');
+};
+
+// ── RENDER ADMIN INSCRITOS ────────────────────────────────────────────────────
+function renderAdminInscritos() {
+  const container = document.getElementById('admin-inscritos-list');
+  let html = '';
+  (config.libro?.sesiones || []).forEach((s, i) => {
+    const names = inscritos.libro?.[s.id] || [];
+    html += `<div style="margin-bottom:1.2rem;">
+      <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(240,237,230,0.35);margin-bottom:0.5rem;">
+        Lectura — ${escH(s.day)} ${escH(s.date)} ${escH(s.time)} <span style="color:#C4664A;margin-left:6px;">(${names.length})</span>
+      </div>
+      <div style="font-size:0.85rem;color:#F0EDE6;line-height:1.8;">
+        ${names.length === 0
+          ? '<span style="color:rgba(240,237,230,0.3);">Nadie apuntado</span>'
+          : names.map((n, j) => `
+            <span style="display:inline-flex;align-items:center;gap:6px;background:#1A120E;border:1px solid rgba(196,102,74,0.2);border-radius:4px;padding:2px 8px;margin:2px;font-size:0.78rem;">
+              ${escH(n)}
+              <span style="cursor:pointer;color:rgba(220,80,80,0.6);font-size:0.7rem;" onclick="removeInscrito('libro','${escH(s.id)}',${j})">✕</span>
+            </span>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  const cnames = inscritos.cine || [];
+  html += `<div>
+    <div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(240,237,230,0.35);margin-bottom:0.5rem;">
+      Cine — ${escH(config.cine?.fecha||'')} <span style="color:#7F77DD;margin-left:6px;">(${cnames.length})</span>
+    </div>
+    <div style="font-size:0.85rem;color:#F0EDE6;line-height:1.8;">
+      ${cnames.length === 0
+        ? '<span style="color:rgba(240,237,230,0.3);">Nadie apuntado</span>'
+        : cnames.map((n, j) => `
+          <span style="display:inline-flex;align-items:center;gap:6px;background:#0E0D1A;border:1px solid rgba(83,74,183,0.2);border-radius:4px;padding:2px 8px;margin:2px;font-size:0.78rem;">
+            ${escH(n)}
+            <span style="cursor:pointer;color:rgba(220,80,80,0.6);font-size:0.7rem;" onclick="removeInscrito('cine',null,${j})">✕</span>
+          </span>`).join('')}
+    </div>
+  </div>`;
+  container.innerHTML = html;
+}
+
+window.removeInscrito = async function(tipo, sessionId, idx) {
+  if (tipo === 'libro') {
+    inscritos.libro[sessionId].splice(idx, 1);
+  } else {
+    inscritos.cine.splice(idx, 1);
+  }
+  await saveInscritos();
+  renderAdminInscritos();
+};
+
+// ── SAVE CONFIG ───────────────────────────────────────────────────────────────
+window.saveLibroConfig = async function() {
+  config.libro.mes = document.getElementById('adm-mes-libro').value.trim() || config.libro.mes;
+  (config.libro.sesiones || []).forEach((s, i) => {
+    s.day   = document.getElementById(`sed-day-${i}`)?.value.trim()   || s.day;
+    s.date  = document.getElementById(`sed-date-${i}`)?.value.trim()  || s.date;
+    s.time  = document.getElementById(`sed-time-${i}`)?.value.trim()  || s.time;
+    s.libro = document.getElementById(`sed-libro-${i}`)?.value.trim() || s.libro;
+  });
+  // Ensure inscritos has entries for any new sessions
+  (config.libro.sesiones || []).forEach(s => {
+    if (!inscritos.libro[s.id]) inscritos.libro[s.id] = [];
+  });
+  await saveConfig();
+  await saveInscritos();
+  renderAdminInscritos();
+  showToast('Cambios de lectura guardados ✓', 'libro');
+};
+
+window.saveCineConfig = async function() {
+  config.cine.tematica = document.getElementById('adm-cine-tematica').value.trim() || config.cine.tematica;
+  config.cine.mes      = document.getElementById('adm-mes-cine').value.trim()      || config.cine.mes;
+  config.cine.fecha    = document.getElementById('adm-cine-fecha').value.trim()    || config.cine.fecha;
+  config.cine.hora     = document.getElementById('adm-cine-hora').value.trim()     || config.cine.hora;
+  await saveConfig();
+  showToast('Cambios de cine guardados ✓', 'cine');
+};
+
+window.resetInscritos = async function(tipo) {
+  if (!confirm('¿Seguro que quieres borrar todos los inscritos de ' + tipo + '?')) return;
+  if (tipo === 'libro') {
+    inscritos.libro = {};
+    (config.libro.sesiones || []).forEach(s => { inscritos.libro[s.id] = []; });
+  } else {
+    inscritos.cine = [];
+  }
+  await saveInscritos();
+  renderAdminInscritos();
+  showToast('Inscritos de ' + tipo + ' borrados', 'libro');
+};
+
+// ── MODALS ────────────────────────────────────────────────────────────────────
+window.openModalLibro = function(id, label, time) {
+  currentLibroSession = id;
+  document.getElementById('modal-libro-session').textContent = label + ' · ' + time;
+  document.getElementById('input-nombre-libro').value = '';
+  document.getElementById('modal-libro').classList.add('open');
+  setTimeout(() => document.getElementById('input-nombre-libro').focus(), 100);
+};
+window.openModalCine = function() {
+  document.getElementById('input-nombre-cine').value = '';
+  document.getElementById('modal-cine').classList.add('open');
+  setTimeout(() => document.getElementById('input-nombre-cine').focus(), 100);
+};
+window.closeModals = function() {
+  document.getElementById('modal-libro').classList.remove('open');
+  document.getElementById('modal-cine').classList.remove('open');
+};
+
+window.confirmLibro = async function() {
+  const nombre = document.getElementById('input-nombre-libro').value.trim();
+  if (!nombre) { document.getElementById('input-nombre-libro').focus(); return; }
+
+  const btn = document.getElementById('btn-confirm-libro');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  if (!inscritos.libro[currentLibroSession]) inscritos.libro[currentLibroSession] = [];
+  if (inscritos.libro[currentLibroSession].includes(nombre)) {
+    showToast('Ya estás apuntado a esta sesión', 'libro');
+    closeModals(); btn.disabled = false; btn.textContent = 'Confirmar reserva'; return;
+  }
+  inscritos.libro[currentLibroSession].push(nombre);
+  await saveInscritos();
+  closeModals();
+  btn.disabled = false; btn.textContent = 'Confirmar reserva';
+  showToast('¡' + nombre + ' apuntado! Recuerda hacer el Bizum de 8 € 📖', 'libro');
+};
+
+window.confirmCine = async function() {
+  const nombre = document.getElementById('input-nombre-cine').value.trim();
+  if (!nombre) { document.getElementById('input-nombre-cine').focus(); return; }
+
+  const btn = document.getElementById('btn-confirm-cine');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  if ((inscritos.cine || []).includes(nombre)) {
+    showToast('Ya estás apuntado a la sesión de cine', 'cine');
+    closeModals(); btn.disabled = false; btn.textContent = 'Confirmar reserva'; return;
+  }
+  if (!inscritos.cine) inscritos.cine = [];
+  inscritos.cine.push(nombre);
+  await saveInscritos();
+  closeModals();
+  btn.disabled = false; btn.textContent = 'Confirmar reserva';
+  showToast('¡' + nombre + ' apuntado! Recuerda hacer el Bizum de 7 € 🎬', 'cine');
+};
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+window.showToast = function(msg, tipo) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (tipo === 'cine' ? ' cine-toast' : '');
+  setTimeout(() => t.classList.remove('show'), 3500);
+};
+
+function showToast(msg, tipo) { window.showToast(msg, tipo); }
+
+// ── CLOSE MODAL ON BACKDROP ───────────────────────────────────────────────────
+document.addEventListener('click', e => {
+  if (e.target.id === 'modal-libro' || e.target.id === 'modal-cine') closeModals();
+});
+
+// ── START ─────────────────────────────────────────────────────────────────────
+initFirestore().catch(err => {
+  console.error('Firebase error:', err);
+  document.getElementById('loading-overlay').classList.add('hidden');
+  showToast('Error al conectar con la base de datos', 'libro');
+});
+</script>
+</body>
+</html>
